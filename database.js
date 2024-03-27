@@ -19,6 +19,7 @@ db.serialize(() => {
 });
 
 const dbFunctions = {
+    // GET USERS
     getAllUsers: (callback) => {
         db.all('SELECT * FROM users', (err, rows) => {
             if (err) {
@@ -32,15 +33,21 @@ const dbFunctions = {
 
     // REGISTER USER
     addUser: (firstName, lastName, password, confirmPassword, callback) => {
-        db.run('INSERT INTO users (firstName, lastName, password, confirmPassword) VALUES (?, ?, ?, ?)', [firstName, lastName, password, confirmPassword], function (err) {
-            if (err) {
-                console.error('Error adding user:', err.message);
-                callback(err, null);
-            } else {
-                callback(null, { User: "Successfully Created User With an Id of " + this.lastID });
-            }
-        });
-    },
+    if (password !== confirmPassword) {
+        const error = new Error('Password and confirmPassword do not match');
+        error.code = -1;
+        callback(error, null);
+        return;
+    }
+    db.run('INSERT INTO users (firstName, lastName, password, confirmPassword) VALUES (?, ?, ?, ?)', [firstName, lastName, password, confirmPassword], function (err) {
+        if (err) {
+            console.error('Error adding user:', err.message);
+            callback(err, null);
+        } else {
+            callback(null, { User: "Successfully Created User With an Id of " + this.lastID });
+        }
+    });
+},
 
     // LOGIN USER
     getUser: (firstName, password, callback) => {
